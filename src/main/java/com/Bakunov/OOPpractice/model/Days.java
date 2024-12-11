@@ -1,12 +1,15 @@
 package com.Bakunov.OOPpractice.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 
 @Entity
 public class Days {
@@ -14,23 +17,29 @@ public class Days {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
-    @ElementCollection
-    private List<Integer> subjects;
+    
+    @ManyToMany(cascade = jakarta.persistence.CascadeType.ALL)
+    @JoinTable(
+        name = "day_lessons",
+        joinColumns = @JoinColumn(name = "day_id"),
+        inverseJoinColumns = @JoinColumn(name = "lesson_id")
+    )
+    private List<Lesson> lessons;
 
     
     public Days() {}
 
-    public Days(String name, List<Integer> subjects) {
+    public Days(String name, List<Lesson> lessons) {
         this.name = name;
-        this.subjects = subjects;
+        this.lessons = lessons != null ? lessons : new ArrayList<>();
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-   public void setSubjects(List<Integer> subjects) {
-       this.subjects = subjects;
+   public void setLessons(List<Lesson> lessons) {
+       this.lessons = lessons;
    }
 
     public int getId() {
@@ -41,7 +50,8 @@ public class Days {
         return name;
     }
 
-    public List<Integer> getSubjects() {
-        return subjects;
+    public List<Lesson> getLessons() {
+        return lessons;
     }
 }
+
