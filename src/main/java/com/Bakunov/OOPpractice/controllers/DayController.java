@@ -1,15 +1,18 @@
 package com.Bakunov.OOPpractice.controllers;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.Bakunov.OOPpractice.DTO.DTOday;
+import com.Bakunov.OOPpractice.DTO.DTOlesson;
 import com.Bakunov.OOPpractice.model.Days;
 import com.Bakunov.OOPpractice.service.DayService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/days")
@@ -23,42 +26,63 @@ public class DayController {
     }
 
     @PostMapping
-    public ResponseEntity<String> create(@RequestBody Days day) {
-        dayService.create(day.getName(), day.getSubjects());
-        return new ResponseEntity<>("Successfully added", HttpStatus.CREATED);
+    public ResponseEntity<DTOday> create(@Valid @RequestBody DTOday dtoDay) {
+        Days createdDay = dayService.create(dtoDay.getName(),
+                dtoDay.getLessons().stream()
+                        .map(DTOlesson::getId)
+                        .toList());
+        DTOday responseDto = dayService.convertToDto(createdDay);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @GetMapping
-    public ResponseEntity<Iterable<Days>> readAll() {
-        Iterable<Days> days = dayService.readAll();
-        return new ResponseEntity<>(days, HttpStatus.OK);
+    public ResponseEntity<List<DTOday>> readAll() {
+        List<DTOday> days = dayService.readAll();
+        return days.isEmpty()
+                ? ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                : ResponseEntity.status(HttpStatus.OK).body(days);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Days> read(@PathVariable int id) {
-        Optional<Days> day = dayService.read(id);
-        return day.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                  .orElseThrow(() -> new RuntimeException("Day not found"));
+    public ResponseEntity<DTOday> read(@PathVariable int id) {
+        try {
+            DTOday day = dayService.read(id);
+            return ResponseEntity.status(HttpStatus.OK).body(day);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> update(@PathVariable int id, @RequestBody Days day) {
-        boolean updated = dayService.update(day, id);
-        return updated ? new ResponseEntity<>("Successfully edited", HttpStatus.OK)
-                       : new ResponseEntity<>("Error trying to edit day", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<DTOday> update(@PathVariable int id, @Valid @RequestBody DTOday dtoDay) {
+        try {
+            Days updatedDay = dayService.update(dtoDay.getName(),
+                    dtoDay.getLessons().stream()
+                            .map(DTOlesson::getId)
+                            .toList(),
+                    id);
+            DTOday responseDto = dayService.convertToDto(updatedDay); // Перетворення в DTO
+            return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable int id) {
-        boolean deleted = dayService.delete(id);
-        return deleted ? new ResponseEntity<>("Successfully deleted", HttpStatus.OK)
-                       : new ResponseEntity<>("Error trying to delete day", HttpStatus.BAD_REQUEST);
+        try {
+            dayService.delete(id);
+            return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @PostMapping("/{id}/subjects")
-    public ResponseEntity<String> addSubjects(@PathVariable int id, @RequestBody List<Integer> subjects) {
-        boolean updated = dayService.addSubjects(id, subjects);
-        return updated ? new ResponseEntity<>("Subjects successfully added", HttpStatus.OK)
-                       : new ResponseEntity<>("Error trying to add subjects", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> addSubjects(@PathVariable int id, @RequestBody List<Integer> subjectIds) {
+        boolean updated = dayService.addSubjects(id, subjectIds);
+        return updated
+                ? ResponseEntity.status(HttpStatus.OK).body("Subjects successfully added")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error trying to add subjects");
     }
 }

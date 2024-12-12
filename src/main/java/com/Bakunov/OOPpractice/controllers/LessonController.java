@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Bakunov.OOPpractice.DTO.DTOlesson;
 import com.Bakunov.OOPpractice.model.Lesson;
 import com.Bakunov.OOPpractice.service.LessonService;
+
+import jakarta.validation.Valid;
 
 @RestController
 public class LessonController {
@@ -24,61 +27,53 @@ public class LessonController {
     private final LessonService lessonService;
 
     @Autowired
-    public LessonController(LessonService lessonService){
+    public LessonController(LessonService lessonService) {
         this.lessonService = lessonService;
     }
 
-
     @PostMapping("/lessons")
-    public ResponseEntity<String> create(@RequestBody Lesson lesson) {
-        lessonService.create(lesson);
-        System.out.println(lesson);
-        return new ResponseEntity<>("Successfuly added", HttpStatus.CREATED);
+    public ResponseEntity<DTOlesson> create(@Valid @RequestBody DTOlesson dtolesson) {
+        Lesson lesson = lessonService.convertToEntity(dtolesson);
+        Lesson created = lessonService.create(lesson);
+        return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.convertToDto(created));
     }
 
+    @GetMapping("/lessons")
+    public ResponseEntity<List<DTOlesson>> readAll() {
+        Iterable<Lesson> lessons = lessonService.readAll();
+        List<DTOlesson> dtoLessons = new ArrayList<>();
+        lessons.forEach(lesson -> dtoLessons.add(lessonService.convertToDto(lesson)));
 
-    @GetMapping(value = "/lessons")
-    public ResponseEntity<List<Lesson>> read() {
-        final Iterable<Lesson> lessons = lessonService.readAll();
-        System.out.println(lessons);
-        List<Lesson> lessonList = new ArrayList<>();
+        return dtoLessons.isEmpty()
+                ? ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                : ResponseEntity.status(HttpStatus.OK).body(dtoLessons);
+    }
 
-        lessons.forEach(lessonList::add);
+    @GetMapping("/lessons/{id}")
+    public ResponseEntity<DTOlesson> read(@PathVariable(name = "id") int id) {
+        Optional<Lesson> lesson = lessonService.read(id);
+        return lesson.map(value -> ResponseEntity.status(HttpStatus.OK).body(lessonService.convertToDto(value)))
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+    }
 
-        if (!lessonList.isEmpty()) {
-            return new ResponseEntity<>(lessonList, HttpStatus.OK);
+    @PutMapping("/lessons/{id}")
+    public ResponseEntity<DTOlesson> update(@PathVariable(name = "id") int id, @Valid @RequestBody DTOlesson dtolesson) {
+        Lesson lesson = lessonService.convertToEntity(dtolesson);
+        boolean updated = lessonService.update(lesson, id);
+
+        if (updated) {
+            Lesson updatedLesson = lessonService.read(id).orElseThrow(() -> new RuntimeException("Lesson not found"));
+            return ResponseEntity.status(HttpStatus.OK).body(lessonService.convertToDto(updatedLesson));
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
         }
     }
-    
-    
-    @GetMapping(value = "/lessons/{id}")
-    public ResponseEntity<Lesson> read(@PathVariable(name = "id") int id) {
-        final Optional<Lesson> lesson = lessonService.read(id);
 
-        Lesson respLesson = lesson.orElseThrow(() -> new RuntimeException("Lesson not found"));
-
-       return new ResponseEntity<>(respLesson, HttpStatus.OK);
-    }
-
-
-    @PutMapping(value = "/lessons/{id}")
-    public ResponseEntity<String> update(@PathVariable(name = "id") int id, @RequestBody Lesson lesson) {
-        final boolean updated = lessonService.update(lesson, id);
-    
-        return updated
-                ? new ResponseEntity<>("Successfuly edited", HttpStatus.OK)
-                : new ResponseEntity<>("Error trying to edit lesson", HttpStatus.NOT_MODIFIED);
-    }
-
-
-    @DeleteMapping(value = "/lessons/{id}")
+    @DeleteMapping("/lessons/{id}")
     public ResponseEntity<String> delete(@PathVariable(name = "id") int id) {
-       final boolean deleted = lessonService.delete(id);
-
-       return deleted
-               ? new ResponseEntity<>("Successfuly deleted", HttpStatus.OK)
-               : new ResponseEntity<>("Error trying to delete lesson", HttpStatus.NOT_MODIFIED);
+        boolean deleted = lessonService.delete(id);
+        return deleted
+                ? ResponseEntity.status(HttpStatus.OK).body("Successfully deleted")
+                : ResponseEntity.status(HttpStatus.NOT_MODIFIED).body("Error trying to delete lesson");
     }
 }

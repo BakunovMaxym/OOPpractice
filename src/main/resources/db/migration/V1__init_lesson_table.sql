@@ -10,9 +10,10 @@ CREATE TABLE days (
     name VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE day_subjects (
+CREATE TABLE day_lessons (
     day_id INT NOT NULL,
-    subject_id INT NOT NULL,
-    PRIMARY KEY (day_id, subject_id),
-    FOREIGN KEY (day_id) REFERENCES days(id) ON DELETE CASCADE
+    lesson_id INT,
+    PRIMARY KEY (day_id, lesson_id),
+    FOREIGN KEY (day_id) REFERENCES days(id) ON DELETE CASCADE,
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 );

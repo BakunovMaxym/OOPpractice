@@ -1,8 +1,10 @@
 package com.Bakunov.OOPpractice.service;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.Bakunov.OOPpractice.DTO.DTOlesson;
 import com.Bakunov.OOPpractice.model.Lesson;
 import com.Bakunov.OOPpractice.repository.LessonRepository;
 
@@ -13,6 +15,17 @@ public class LessonService {
 
     @Autowired
     private LessonRepository lessonRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+    
+    public DTOlesson convertToDto(Lesson lesson){
+        return modelMapper.map(lesson, DTOlesson.class);
+    }
+
+    public Lesson convertToEntity(DTOlesson dtOlesson){
+        return modelMapper.map(dtOlesson, Lesson.class);
+    }
 
     public Lesson create(Lesson lesson) {
         return lessonRepository.save(lesson);

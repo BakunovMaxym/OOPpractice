@@ -1,28 +1,34 @@
-package com.Bakunov.OOPpractice.model;
+package com.Bakunov.OOPpractice.DTO;
 
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.NotBlank;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 
-@Entity
-public class Lesson {
+public class DTOlesson {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
+
+    @NotNull(message = "name cannot be null")
+    @NotBlank(message = "name cannot be blank")
     private String name;
+
+    @NotNull(message = "teacher's name cannot be null")
+    @NotBlank(message = "teacher's name cannot be blank")
     private String teacher;
+
+    @NotNull(message = "classroom cannot be null")
+    @DecimalMax(value = "600", inclusive = false, message = "there are not so many classrooms")
     private int classroom;
-    
-    @ManyToMany(mappedBy = "lessons")
-    private List<Days> days;
 
-    public Lesson() {}
+    public DTOlesson() {
+    }
 
-    public Lesson(String name, String teacher, int classroom){
+    public DTOlesson(String name, String teacher, int classroom) {
         this.name = name;
         this.teacher = teacher;
         this.classroom = classroom;
@@ -40,10 +46,6 @@ public class Lesson {
         this.classroom = classroom;
     }
 
-    public void setDays(List<Days> days) {
-        this.days = days;
-    }
-
     public int getId() {
         return id;
     }
@@ -59,9 +61,4 @@ public class Lesson {
     public String getTeacher() {
         return teacher;
     }
-    public List<Days> getDays() {
-        return days;
-    }
 }
-
-
