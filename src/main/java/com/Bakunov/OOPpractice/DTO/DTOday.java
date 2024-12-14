@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class DTOday {
  @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    // @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
     @NotNull(message = "name cannot be null")
@@ -25,11 +25,16 @@ public class DTOday {
     
     public DTOday() {}
 
-    public DTOday(String name, List<DTOlesson> lessons) {
+    public DTOday(int id, String name, List<DTOlesson> lessons) {
+        this.id=id;
         this.name = name;
         this.lessons = lessons;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+    
     public void setName(String name) {
         this.name = name;
     }

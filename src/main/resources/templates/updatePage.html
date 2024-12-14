@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit/Delete Day</title>
+    <style>
+        html, form {
+            background-color: rgb(225, 225, 225);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 150px;
+            font-size: 3rem;
+        }
+        input {
+            font-size: 1rem;
+            border-radius: 7px;
+        }
+        button {
+            font-size: 1rem;
+            background-color: rgb(90, 156, 255);
+            border-radius: 7px;
+            border: 0;
+            padding: 5px;
+            width: 120px;
+            color: aliceblue;
+        }
+        button:hover {
+            box-shadow: 0 0 15px rgb(90, 156, 255);
+        }
+        button:first-child {
+            background-color: rgb(255, 90, 90);
+        }
+        button:first-child:hover {
+            box-shadow: 0 0 15px rgb(255, 90, 90);
+        }
+        a {
+            text-decoration: none;
+            color: aliceblue;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Edit Day</h1>
+    <form id="editDayForm">
+        <label for="dayId">Day ID:</label>
+        <input type="number" placeholder="Enter day ID" name="id">
+
+        <label for="dayName">Day Name:</label>
+        <input type="text" placeholder="Enter new day name" name="name">
+
+        <label for="lesson1">Lesson 1 ID:</label>
+        <input type="number" placeholder="Enter lesson 1 ID" name="lessons[]">
+
+        <label for="lesson2">Lesson 2 ID:</label>
+        <input type="number" placeholder="Enter lesson 2 ID" name="lessons[]">
+
+        <label for="lesson3">Lesson 3 ID:</label>
+        <input type="number" placeholder="Enter lesson 3 ID" name="lessons[]">
+
+        <label for="lesson4">Lesson 4 ID:</label>
+        <input type="number" placeholder="Enter lesson 4 ID" name="lessons[]">
+
+        <div class="btnContainer">
+            <button type="button"><a href="/">Back</a></button>
+            <button type="submit">Update</button>
+        </div>
+    </form>
+
+    <script>
+        const editDayForm = document.getElementById("editDayForm");
+
+        editDayForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            const jsonData = {
+                id: parseInt(formData.get("id"), 10),
+                name: formData.get("name"),
+                lessons: Array.from(formData.getAll("lessons[]"))
+                    .filter(id => id.trim() !== "")
+                    .map(id => ({ id: parseInt(id.trim(), 10) }))
+            };
+
+            console.log(jsonData);
+            try {
+                const response = await fetch(`http://localhost:8080/days/${jsonData.id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": localStorage.getItem("token") || ""
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    alert("Day updated successfully: " + JSON.stringify(res));
+                } else {
+                    const error = await response.text();
+                    alert("Error: " + error);
+                }
+            } catch (err) {
+                console.error("Error occurred during fetch:", err);
+                alert("An error occurred while sending the request.");
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+2024-12-13 23:08:34.281707+02:00 jdbc[15]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SHOW [*]CREATE TABLE day_lessons"; SQL statement:
+SHOW CREATE TABLE day_lessons [42000-232]
+2024-12-13 23:13:19.834233+02:00 jdbc[15]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "'' (LESSON: ""ID"" INTEGER NOT NULL)"; SQL statement:
+INSERT INTO "PUBLIC"."LESSON"("CLASSROOM","ID","NAME","TEACHER")VALUES(?,?,?,?) [22018-232]
+2024-12-13 23:13:19.841233+02:00 jdbc[15]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "'' (LESSON: ""ID"" INTEGER NOT NULL)"; SQL statement:
+INSERT INTO "PUBLIC"."LESSON"("CLASSROOM","ID","NAME","TEACHER")VALUES(?,?,?,?) [22018-232]

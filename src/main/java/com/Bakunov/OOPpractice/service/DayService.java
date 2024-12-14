@@ -38,6 +38,7 @@ public class DayService {
 
     public DTOday convertToDto(Days day) {
         DTOday dto = modelMapper.map(day, DTOday.class);
+        dto.setId(day.getId());
         List<DTOlesson> lessons = day.getLessons()
                                      .stream()
                                      .map(lessonService::convertToDto)

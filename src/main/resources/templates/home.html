@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body{
+            padding: 0;
+            margin: 0;
+        }
+        body {
+            font-size: 26px;
+            background-color: rgb(225, 225, 225);
+            color: rgb(0, 0, 0);
+        }
+        /* .authLink{
+            position: absolute;
+            left: 10px;
+            top: 10px;
+
+        } */
+        button:hover{
+            cursor: pointer;
+        }
+        .navbar, .links{
+            background-color: rgb(86, 86, 86);
+           display: flex;
+           flex-direction: row;
+           justify-content: space-between;
+           gap: 20px;
+        }
+        .authLink{
+            margin: 26px 0 26px 10px;
+            
+        }
+        .linkItem a, .authLink{
+            width: 150px;
+            font-size: 24px;
+            text-decoration: none;
+            color: aliceblue;
+        }
+        .linkItem a:hover, .authLink:hover{
+            color: orange;
+            text-shadow: 0 0 15px aliceblue;
+        }
+        .contentWrapper {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .time {
+            min-width: 170px;
+            align-items: center;
+        }
+
+        .time ul {
+            margin: 0;
+            padding: 0;
+            align-items: center;
+        }
+
+        .time ul li {
+            border-bottom: 2px solid black;
+            text-align: center;
+            height: 133px;
+            align-content: center;
+        }
+
+        h1 {
+            text-align: center;
+            color: rgb(68, 0, 97);
+        }
+
+        h2 {
+            margin: 0;
+            padding-bottom: 10px;
+            text-align: center;
+            border-bottom: 2px solid black;
+
+        }
+
+        h3 {
+            margin: 0;
+            padding: 10px 0 10px 0;
+            /* border-top: 2px solid black; */
+
+        }
+
+        #contentBlock {
+            display: flex;
+            flex-direction: row;
+            /* justify-content: space-around; */
+        }
+
+        #contentBlock div {
+            /* width: 100%; */
+            text-align: center;
+        }
+
+        p {
+            color: rgb(45, 45, 45);
+            text-shadow: 1px -1px 2px white;
+            height: 30px;
+            margin: 15px 20px 15px 20px;
+        }
+
+        ul {
+            list-style: none;
+            max-width: 400px;
+        }
+
+        .dayBlock {
+            border-left: 2px solid black;
+        }
+
+        .dayBlock .lessonInfo {
+            padding-bottom: 20px;
+            border-bottom: 2px solid black;
+        }
+
+        .lessonInfo {
+            position: relative;
+        }
+
+        .lessonInfo button {
+            position: absolute;
+            bottom: 5px;
+            background: none;
+            border: 0;
+        }
+
+        .remove {
+            right: 5px;
+        }
+
+        .update {
+            left: 5px;
+        }
+
+        .btnContainer {
+            margin-top: 5px;
+            display: flex;
+            width: 177px;
+            gap: 10%;
+        }
+
+        .btnContainer button {
+            width: 45%;
+        }
+
+        .btnContainer button {
+            background-color: rgb(90, 156, 255);
+            border: none;
+            padding: 3px;
+            font-weight: 700;
+        }
+
+        .btnContainer button:first-child {
+            background-color: rgb(255, 90, 90);
+        }
+
+
+        .updateForm {
+            position: absolute;
+            display: none;
+        }
+
+        .visible {
+            display: flex;
+            flex-direction: column;
+            /* align-items: start; */
+            background-color: beige;
+            border: 2px solid black;
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+            <a class="authLink" href="auth">Authorize</a>
+        <ul class="links">
+            <li class="linkItem"><a href="/create-day">Create Day</a></li>
+            <li class="linkItem"><a href="/update-day">Update Day</a></li>
+            <li class="linkItem"><a href="/delete-day">Delete Day</a></li>
+        </ul>
+    </div>
+    <h1>Timetable</h1>
+    <div class="contentWrapper">
+        <div class="time">
+            <h2>Час:</h2>
+            <ul>
+                <li>8:00-9:20</li>
+                <li>9:30-10:50</li>
+                <li>11:00-12:20</li>
+                <li>12:40-14:00</li>
+            </ul>
+        </div>
+        <div id="contentBlock"></div>
+    </div>
+
+    <form id="updateLesson" class="updateForm">
+        <label for="name">Name:</label>
+        <input type="text" name="name">
+        <label for="teacher">Teacher:</label>
+        <input type="text" name="teacher">
+        <label for="classroom">Classroom:</label>
+        <input type="number" step="1" name="classroom">
+        <div class="btnContainer">
+            <button id="cancelBtn" type="button">Cancel</button>
+            <button type="submit">Update</button>
+        </div>
+    </form>
+
+
+
+    <script>
+
+        let updateID;
+        const token = localStorage.getItem("token");
+
+        const removeForm = document.getElementById("removeLesson");
+        const updateForm = document.getElementById("updateLesson");
+
+        const fetchData = async () => {
+            const contentBlock = document.getElementById('contentBlock');
+
+            try {
+                const res = await fetch("http://localhost:8080/days");
+                const data = await res.json();
+
+                console.log(data);
+
+                data.map(day => {
+                    const dayBlock = document.createElement("div");
+                    const dayName = document.createElement("h2");
+                    dayName.textContent = day.name;
+                    dayBlock.appendChild(dayName);
+                    dayBlock.classList.add("dayBlock");
+                    const lessons = day.lessons;
+
+                    lessons.map((lesson, index) => {
+                        const lessonInfo = document.createElement("div");
+                        const lessonName = document.createElement("h3");
+                        const lessonTeacher = document.createElement("div");
+                        const lessonRoom = document.createElement("div");
+
+                        
+                        lessonName.textContent = lesson.name;
+                        lessonTeacher.textContent = lesson.teacher;
+                        lessonRoom.textContent = "Каб. " + lesson.classroom;
+                        
+                        if(token){
+                            const removebtn = document.createElement("button");
+                            const updatebtn = document.createElement("button");
+
+                            removebtn.id = updatebtn.id = lesson.id;
+                            removebtn.textContent = "🗑️";
+                            updatebtn.textContent = "✏️";
+    
+                            removebtn.classList.add("remove");
+                            removebtn.addEventListener("click", () => { setRequest(`http://localhost:8080/lessons/${removebtn.id}`, "DELETE") })
+    
+                            updatebtn.classList.add("update");
+                            updatebtn.addEventListener("click", () => {
+                                const rect = removebtn.getBoundingClientRect();
+                                setUpdateForm(rect), updateID = updatebtn.id
+                            })
+    
+                            lessonInfo.appendChild(removebtn);
+                            lessonInfo.appendChild(updatebtn);
+                        }
+
+                        lessonInfo.appendChild(lessonName);
+                        lessonInfo.appendChild(lessonTeacher);
+                        lessonInfo.appendChild(lessonRoom);
+
+                        lessonInfo.classList.add("lessonInfo");
+                        // console.log('lesson.id', lesson.id)
+                        dayBlock.appendChild(lessonInfo);
+                    });
+                    contentBlock.appendChild(dayBlock);
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        fetchData();
+
+        const setUpdateForm = (pos) => {
+            updateForm.classList.add("visible");
+            let topOffset = parseInt(window.getComputedStyle(updateForm).height, 10) + 5;
+            updateForm.style.top = `${pos.top - topOffset}px`;
+            updateForm.style.left = `${pos.left - 170}px`;
+        }
+
+        const cancelBtn = document.getElementById("cancelBtn")
+
+        cancelBtn.addEventListener("click", () => { (updateForm.classList.remove("visible")) })
+
+        const updateLesson = document.getElementById("updateLesson");
+
+        updateLesson.addEventListener("submit", (event) => {
+            event.preventDefault();
+            setRequest(`http://localhost:8080/lessons/${updateID}`, "PUT", new FormData(updateLesson))
+        })
+
+        const setRequest = async (reqUrl, reqMethod, reqBody) => {
+            const token = localStorage.getItem("token");
+
+            let jsonData = null;
+
+            if (reqBody) {
+                jsonData = {};
+                reqBody.forEach((value, key) => {
+                    jsonData[key] = value;
+                });
+                console.log('jsonData', jsonData);
+            }
+
+            try {
+                const response = await fetch(reqUrl, {
+                    method: reqMethod,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": token,
+                    },
+                    body: reqBody ? JSON.stringify(jsonData) : null,
+                });
+
+                if (response.ok) {
+                    const res = await response.text();
+                    alert("Success: " + res);
+                } else {
+                    const error = await response.text();
+                    alert("Error: " + error);
+                }
+            } catch (err) {
+                console.error("Error occurred during fetch:", err);
+                alert("An error occurred while sending the request.");
+            }
+        }
+    </script>
+</body>
+
+</html>

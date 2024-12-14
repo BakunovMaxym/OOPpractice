@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 
 public class DTOlesson {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    // @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
     @NotNull(message = "name cannot be null")
@@ -28,12 +28,17 @@ public class DTOlesson {
     public DTOlesson() {
     }
 
-    public DTOlesson(String name, String teacher, int classroom) {
+    public DTOlesson(int id, String name, String teacher, int classroom) {
+        this.id = id;
         this.name = name;
         this.teacher = teacher;
         this.classroom = classroom;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+    
     public void setName(String name) {
         this.name = name;
     }

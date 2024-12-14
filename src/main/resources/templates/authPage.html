@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, form{
+            background-color: rgb(225, 225, 225);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+        h1{
+            text-align: center;
+            margin-top: 230px;
+            font-size: 4rem;
+        }
+        input{
+            font-size: 1rem;
+            border-radius: 7px;
+        }
+        button{
+            font-size: 1rem;
+            background-color: rgb(90, 156, 255);
+            border-radius: 7px;
+            border: 0;
+            padding: 5px;
+            width: 100px;
+            color: aliceblue;
+        }
+        button:hover{
+            box-shadow: 0 0 15px rgb(90, 156, 255);
+        }
+        button:first-child{
+            background-color: rgb(255, 90, 90);
+        } 
+        button:first-child:hover{
+            box-shadow: 0 0 15px rgb(255, 90, 90);
+        }
+        a{
+            text-decoration: none;
+            color: aliceblue;
+
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Authorize</h1>
+    <form id="authForm">
+        <label for="username">Username:</label>
+        <input type="text" placeholder="Enter username" name="username">
+        <label for="password">Password:</label>
+        <input type="password" placeholder="Enter password"  name="password">
+        <div class="btnContainer">
+            <button type="button"><a href="/">Back</a></button>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+
+
+    <script>
+        const authForm = document.getElementById("authForm");
+
+        authForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const data = new FormData(this);
+
+            const jsonData = {};
+            data.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            console.log(jsonData)
+            try {
+                const response = await fetch("http://localhost:8080/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    localStorage.setItem("token", res.token)
+                    alert("Success: " + res.token);
+                } else {
+                    const error = await response.json();
+                    alert("Error: " + error.message);
+                }
+            } catch (err) {
+                console.error("Error occurred during fetch:", err);
+                alert("An error occurred while sending the request.");
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>
